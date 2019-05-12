@@ -5,21 +5,23 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate,login
-
-class Login(APIView):
-	def post(self,request):
-		username=(request.data.get("username"))
-		password=(request.data.get("password"))
-		user=authenticate(username=username,password=password)
-		if user is None:
-			return Response({ "Status": "Error", "Message" : "Invalid Crediants" },status=200)
-		else:
-			if user.is_active:
-				login(self.request, user)
-				return Response({ "Status": "Success", "Message" : "Welcome" },status=200)
-
-
 from rest_framework.generics import CreateAPIView
+from rest_framework.permissions import IsAuthenticated
+
+# class Login(APIView):
+# 	def post(self,request):
+# 		username=(request.data.get("username"))
+# 		password=(request.data.get("password"))
+# 		user=authenticate(username=username,password=password)
+# 		if user is None:
+# 			return Response({ "Status": "Error", "Message" : "Invalid Crediants" },status=200)
+# 		else:
+# 			if user.is_active:
+# 				login(self.request, user)
+# 				return Response({ "Status": "Success", "Message" : "Welcome" },status=200)
+
+
+
 
 class CreateUser(CreateAPIView):
     serializer_class = UserSerializer
@@ -56,10 +58,15 @@ class CreateUser(CreateAPIView):
 
 
 class UploadFile(APIView):
+	permission_classes = (IsAuthenticated,)
 	parser_class = (FileUploadParser,)
 	def post(self,request):
 		print(request.data)
-		file_serializer = FileSerializer(data={"file":request.data.get("profile")})
+		file_serializer = FileSerializer(
+			data={"file":request.data.get("profile"),"sentto":request.data.get("sentto")},
+			context={'request': request}
+			)
+		
 		if file_serializer.is_valid():
 			file_serializer.save()
 			return Response({"status":"Success","message":"done"}, status=201)
@@ -71,11 +78,16 @@ class UploadFile(APIView):
 
 
 class SearchUser(APIView):
+	permission_classes = (IsAuthenticated,)
 	def post(self,request):
-		print(request.data)
-		if request.data.get("name")=="abc":
-			return Response({"status":"False","message":"nahi hai"},status=200)
+		print(request.data,request.user)
+		username=request.data.get("name")
+		user=User.objects.filter(username__iexact=username)
+		if user.exists()==False:
+			return Response({"status":"False","message":"User with that username doesn't exists"},status=200)
+		if user.first()==request.user:
+			return Response({"status":"False","message":"Yo can send to yourself"},status=200)
 
-		return Response({"status":"True","data":"id"},status=200)
+		return Response({"status":"True","data":user.first().id},status=200)
 
 

@@ -18,10 +18,11 @@ from django.urls import path
 from filetransfer.views import *
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework_simplejwt import views as jwt_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("api/Login/UserLogin",Login.as_view()),
+    path("api/Login/UserLogin",jwt_views.TokenObtainPairView.as_view()),
     path("api/Login/createcontact",CreateUser.as_view()),
     path("api/upload/",UploadFile.as_view()),
     path("api/searchuser/",SearchUser.as_view())
