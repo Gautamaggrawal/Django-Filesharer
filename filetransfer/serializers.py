@@ -3,19 +3,19 @@ from django.contrib.auth.models import User
 from .models import File
 
 class FileSerializer(serializers.ModelSerializer):
-	sentby=serializers.SerializerMethodField()
-	sentto=serializers.CharField()
+	# sentby=serializers.CharField()
+	# sentto=serializers.CharField()
 
 	# def validate_sentto(self,data):
 		
 	
-	def get_sentby(self, obj):
-		request = getattr(self.context, 'request', None)
-		if request:
-			return request.user
+	# def get_sentby(self, obj):
+	# 	request = getattr(self.context, 'request', None)
+	# 	if request:
+	# 		return request.user
 	class Meta:
 		model = File
-		fields = ('sentby','file','sentto')
+		fields = ("file",)
 
 	# def create(self, validated_data):
 	# 	obj = File.objects.create(**validated_data)
